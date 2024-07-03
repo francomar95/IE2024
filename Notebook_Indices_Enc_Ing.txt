@@ -1,0 +1,528 @@
+import pandas as pd
+import numpy as np
+import re
+
+# Remuneraciones
+file = "Remuneraciones.csv"
+IC = pd.read_csv(file)
+# Deflactores Remuneraciónes
+file2 = "Deflactores Remuneraciones.csv"
+DEF = pd.read_csv(file2)
+
+# Constantes
+if IC.shape != DEF.shape:
+  raise ValueError("ERROR1")
+ICON = pd.DataFrame(columns=IC.columns)
+for index, row in IC.iterrows():
+  for col_index in range(1, IC.shape[1]):
+    ICON.loc[index, IC.columns[col_index]] = round(row[IC.columns[col_index]] / DEF.loc[index, DEF.columns[col_index]], 10)
+if ICON.shape[0] != IC.shape[0]:
+  raise ValueError("ERROR2")
+ic_col1 = IC.iloc[:, 0].copy()
+ICON.iloc[:, 0] = ic_col1
+
+# Totales y/o acumulado por sector
+fila_objetivo = 1
+columnas_a_sumar = ICON.columns[1:]
+suma_valores = ICON.loc[2:15, columnas_a_sumar].sum(axis=0)
+ICON.loc[fila_objetivo, columnas_a_sumar] = suma_valores
+fila_objetivo2 = 16
+columnas_a_sumar2 = ICON.columns[1:]
+suma_valores2 = ICON.loc[17:21, columnas_a_sumar2].sum(axis=0)
+ICON.loc[fila_objetivo2, columnas_a_sumar2] = suma_valores2
+fila_objetivo3 = 22
+columnas_a_sumar3 = ICON.columns[1:]
+suma_valores3 = ICON.loc[23:27, columnas_a_sumar3].sum(axis=0)
+ICON.loc[fila_objetivo3, columnas_a_sumar3] = suma_valores3
+fila_objetivo4 = 28
+columnas_a_sumar4 = ICON.columns[1:]
+suma_valores4 = ICON.loc[29:35, columnas_a_sumar4].sum(axis=0)
+ICON.loc[fila_objetivo4, columnas_a_sumar4] = suma_valores4
+fila_objetivo5 = 36
+columnas_a_sumar5 = ICON.columns[1:]
+suma_valores5 = ICON.loc[37:44, columnas_a_sumar5].sum(axis=0)
+ICON.loc[fila_objetivo5, columnas_a_sumar5] = suma_valores5
+fila_objetivo6 = 45
+columnas_a_sumar6 = ICON.columns[1:]
+suma_valores6 = ICON.loc[46:48, columnas_a_sumar6].sum(axis=0)
+ICON.loc[fila_objetivo6, columnas_a_sumar6] = suma_valores6
+fila_objetivo7 = 49
+columnas_a_sumar7 = ICON.columns[1:]
+suma_valores7 = ICON.loc[50:57, columnas_a_sumar7].sum(axis=0)
+ICON.loc[fila_objetivo7, columnas_a_sumar7] = suma_valores7
+fila_objetivo8 = 58
+columnas_a_sumar8 = ICON.columns[1:]
+suma_valores8 = ICON.loc[59:64, columnas_a_sumar8].sum(axis=0)
+ICON.loc[fila_objetivo8, columnas_a_sumar8] = suma_valores8
+fila_objetivo9 = 65
+columnas_a_sumar9 = ICON.columns[1:]
+suma_valores9 = ICON.loc[66:68, columnas_a_sumar9].sum(axis=0)
+ICON.loc[fila_objetivo9, columnas_a_sumar9] = suma_valores9
+fila_objetivo10 = 69
+columnas_a_sumar10 = ICON.columns[1:]
+suma_valores10 = ICON.loc[70:71, columnas_a_sumar10].sum(axis=0)
+ICON.loc[fila_objetivo10, columnas_a_sumar10] = suma_valores10
+fila_objetivo11 = 0
+columnas_a_sumar11 = ICON.columns[1:]
+suma_valores11 = ICON.loc[(1, 16, 22, 28, 36, 45, 49, 58, 65, 69), columnas_a_sumar11].sum(axis=0)
+ICON.loc[fila_objetivo11, columnas_a_sumar11] = suma_valores11
+for col in ICON.columns[1:]:
+    ICON[col] *= 100
+ICON.loc[0, ICON.columns[0]] = "SPNF"
+
+# Corrientes Anuales
+ICA = IC.copy()
+columnas_a_promediar = IC.columns[1:]
+for index, row in ICA.iterrows():
+    for i in range(0, len(columnas_a_promediar), 12):
+        promedio = np.mean(row[columnas_a_promediar[i:i+12]].to_numpy())
+        ICA.loc[index, f"Promedio_{i//12+1}"] = round(promedio, 13)
+ICA = ICA.iloc[:, [0] + list(range(-7, 0))]
+
+
+# Constantes Anuales
+ICONA = ICON.copy()
+columnas_a_promediar = ICON.columns[1:]
+for index, row in ICONA.iterrows():
+    for i in range(0, len(columnas_a_promediar), 12):
+        promedio = np.mean(row[columnas_a_promediar[i:i+12]].to_numpy())
+        ICONA.loc[index, f"Promedio_{i//12+1}"] = round(promedio, 13)
+ICONA = ICONA.iloc[:, [0] + list(range(-7, 0))]
+
+# Indice Base Movil
+# 2018
+IBM = IC.copy()
+IBM = IBM.iloc[:, :13]
+for index, row in IBM.iterrows():
+    value = round(row[IC.columns[1]] / ICA.loc[index, ICA.columns[1]], 13)
+    IBM.loc[index, "01-2018"] = value
+for index, row in IBM.iterrows():
+    value2 = round(row[IC.columns[2]] / ICA.loc[index, ICA.columns[1]], 13)
+    IBM.loc[index, "02-2018"] = value2
+for index, row in IBM.iterrows():
+    value3 = round(row[IC.columns[3]] / ICA.loc[index, ICA.columns[1]], 13)
+    IBM.loc[index, "03-2018"] = value3
+for index, row in IBM.iterrows():
+    value4 = round(row[IC.columns[4]] / ICA.loc[index, ICA.columns[1]], 13)
+    IBM.loc[index, "04-2018"] = value4
+for index, row in IBM.iterrows():
+    value5 = round(row[IC.columns[5]] / ICA.loc[index, ICA.columns[1]], 13)
+    IBM.loc[index, "05-2018"] = value5
+for index, row in IBM.iterrows():
+    value6 = round(row[IC.columns[6]] / ICA.loc[index, ICA.columns[1]], 13)
+    IBM.loc[index, "06-2018"] = value6
+for index, row in IBM.iterrows():
+    value7 = round(row[IC.columns[7]] / ICA.loc[index, ICA.columns[1]], 13)
+    IBM.loc[index, "07-2018"] = value7
+for index, row in IBM.iterrows():
+    value8 = round(row[IC.columns[8]] / ICA.loc[index, ICA.columns[1]], 13)
+    IBM.loc[index, "08-2018"] = value8
+for index, row in IBM.iterrows():
+    value9 = round(row[IC.columns[9]] / ICA.loc[index, ICA.columns[1]], 13)
+    IBM.loc[index, "09-2018"] = value9
+for index, row in IBM.iterrows():
+    value10 = round(row[IC.columns[10]] / ICA.loc[index, ICA.columns[1]], 13)
+    IBM.loc[index, "10-2018"] = value10
+for index, row in IBM.iterrows():
+    value11 = round(row[IC.columns[11]] / ICA.loc[index, ICA.columns[1]], 13)
+    IBM.loc[index, "11-2018"] = value11
+for index, row in IBM.iterrows():
+    value12 = round(row[IC.columns[12]] / ICA.loc[index, ICA.columns[1]], 13)
+    IBM.loc[index, "12-2018"] = value12
+
+IBM2 = ICON.copy()
+IBM2 = IBM2.iloc[:, [0] + list(range(13, 77))]
+
+# 2019 - 2023
+años = ['2019', '2020', '2021', '2022', '2023']
+meses = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
+start_col = 13
+for i, año in enumerate(años):
+    for j, mes in enumerate(meses):
+        col_index = start_col + i * 12 + j
+        for index, row in IBM2.iterrows():
+            value = round(row[ICON.columns[col_index]] / ICA.loc[index, ICA.columns[i+1]], 13)
+            IBM2.loc[index, f"{mes}-{año}"] = value
+# 2024
+for index, row in IBM2.iterrows():
+    value = round(row[ICON.columns[73]] / ICA.loc[index, ICA.columns[6]], 13)
+    IBM2.loc[index, "01-2024"] = value
+for index, row in IBM2.iterrows():
+    value2 = round(row[ICON.columns[74]] / ICA.loc[index, ICA.columns[6]], 13)
+    IBM2.loc[index, "02-2024"] = value2
+for index, row in IBM2.iterrows():
+    value = round(row[ICON.columns[75]] / ICA.loc[index, ICA.columns[6]], 13)
+    IBM2.loc[index, "03-2024"] = value
+for index, row in IBM2.iterrows():
+    value2 = round(row[ICON.columns[76]] / ICA.loc[index, ICA.columns[6]], 13)
+    IBM2.loc[index, "04-2024"] = value2
+
+## Agregar una linea nueva cuando se agrugue nueva información mensual ##
+IBM = pd.concat([IBM, IBM2.iloc[:, 1:]], axis=1)
+IBM.iloc[:, 1:] *= 100
+
+# Eslabon
+ESL = ICONA.copy()
+for index, row in ESL.iterrows():
+    value = round(row[ICONA.columns[1]] / ICONA.loc[index, ICONA.columns[1]], 13)
+    ESL.loc[index, "2018"] = value
+for index, row in ESL.iterrows():
+    value = round(row[ICONA.columns[2]] / ICA.loc[index, ICA.columns[1]], 13)
+    ESL.loc[index, "2019"] = value
+for index, row in ESL.iterrows():
+    value = round(row[ICONA.columns[3]] / ICA.loc[index, ICA.columns[2]], 13)
+    ESL.loc[index, "2020"] = value
+for index, row in ESL.iterrows():
+    value = round(row[ICONA.columns[4]] / ICA.loc[index, ICA.columns[3]], 13)
+    ESL.loc[index, "2021"] = value
+for index, row in ESL.iterrows():
+    value = round(row[ICONA.columns[5]] / ICA.loc[index, ICA.columns[4]], 13)
+    ESL.loc[index, "2022"] = value
+for index, row in ESL.iterrows():
+    value = round(row[ICONA.columns[6]] / ICA.loc[index, ICA.columns[5]], 13)
+    ESL.loc[index, "2023"] = value
+for index, row in ESL.iterrows():
+    value = round(row[ICONA.columns[7]] / ICA.loc[index, ICA.columns[6]], 13)
+    ESL.loc[index, "2024"] = value
+
+## Agregar una linea nueva cuando se agrugue nueva información anual ##
+ESL.iloc[:, 1:] *= 100
+ESL.drop(ESL.columns[1:8], axis=1, inplace=True)
+
+# Cadena de Volumen
+CDV = ESL.copy()
+for index, row in CDV.iterrows():
+    value = round(row[ESL.columns[2]] * ESL.loc[index, ESL.columns[1]], 13)
+    CDV.loc[index, "2019"] = value
+for index, row in CDV.iterrows():
+    value = round(row[ESL.columns[3]] * CDV.loc[index, CDV.columns[2]], 13)
+    CDV.loc[index, "2020"] = value
+for index, row in CDV.iterrows():
+    value = round(row[ESL.columns[4]] * CDV.loc[index, CDV.columns[3]], 13)
+    CDV.loc[index, "2021"] = value
+for index, row in CDV.iterrows():
+    value = round(row[ESL.columns[5]] * CDV.loc[index, CDV.columns[4]], 13)
+    CDV.loc[index, "2022"] = value
+for index, row in CDV.iterrows():
+    value = round(row[ESL.columns[6]] * CDV.loc[index, CDV.columns[5]], 13)
+    CDV.loc[index, "2023"] = value
+for index, row in CDV.iterrows():
+    value = round(row[ESL.columns[7]] * CDV.loc[index, CDV.columns[6]], 13)
+    CDV.loc[index, "2024"] = value
+CDV.iloc[:, 2:] /= 100
+CDV.iloc[:, 3:] /= 100
+CDV.iloc[:, 4:] /= 100
+CDV.iloc[:, 5:] /= 100
+CDV.iloc[:, 6:] /= 100
+CDV.iloc[:, 7:] /= 100
+
+## Agregar una linea nueva cuando se agrugue nueva información anual ##
+
+# Pesos Corrientes
+# 2018
+PECO = CDV.copy()
+IC["Suma_2018"] = IC.iloc[:, 1:12].sum(axis=1)
+IC.loc[0, "2018"] = 1.0
+filas_especificas = [1, 16, 22, 28, 36, 45, 49, 58, 65, 69]
+for i in range(1, len(IC)):
+  if i in filas_especificas:
+    IC.loc[i, "2018"] = round(IC.loc[i, "Suma_2018"] / IC.loc[0, "Suma_2018"], 13)
+  elif 2 <= i <= 15:
+    IC.loc[i, "2018"] = round(IC.loc[i, "Suma_2018"] / IC.loc[1, "Suma_2018"], 13)
+  elif 17 <= i <= 21:
+    IC.loc[i, "2018"] = round(IC.loc[i, "Suma_2018"] / IC.loc[16, "Suma_2018"], 13)
+  elif 23 <= i <= 27:
+    IC.loc[i, "2018"] = round(IC.loc[i, "Suma_2018"] / IC.loc[22, "Suma_2018"], 13)
+  elif 29 <= i <= 35:
+    IC.loc[i, "2018"] = round(IC.loc[i, "Suma_2018"] / IC.loc[28, "Suma_2018"], 13)
+  elif 37 <= i <= 44:
+    IC.loc[i, "2018"] = round(IC.loc[i, "Suma_2018"] / IC.loc[36, "Suma_2018"], 13)
+  elif 46 <= i <= 48:
+    IC.loc[i, "2018"] = round(IC.loc[i, "Suma_2018"] / IC.loc[45, "Suma_2018"], 13)
+  elif 50 <= i <= 57:
+    IC.loc[i, "2018"] = round(IC.loc[i, "Suma_2018"] / IC.loc[49, "Suma_2018"], 13)
+  elif 59 <= i <= 64:
+    IC.loc[i, "2018"] = round(IC.loc[i, "Suma_2018"] / IC.loc[58, "Suma_2018"], 13)
+  elif 66 <= i <= 68:
+    IC.loc[i, "2018"] = round(IC.loc[i, "Suma_2018"] / IC.loc[65, "Suma_2018"], 13)
+  elif 70 <= i <= 71:
+    IC.loc[i, "2018"] = round(IC.loc[i, "Suma_2018"] / IC.loc[69, "Suma_2018"], 13)
+# 2019
+IC["Suma_2019"] = IC.iloc[:, 13:24].sum(axis=1)
+IC.loc[0, "2019"] = 1.0
+for i in range(1, len(IC)):
+  if i in filas_especificas:
+    IC.loc[i, "2019"] = round(IC.loc[i, "Suma_2019"] / IC.loc[0, "Suma_2019"], 13)
+  elif 2 <= i <= 15:
+    IC.loc[i, "2019"] = round(IC.loc[i, "Suma_2019"] / IC.loc[1, "Suma_2019"], 13)
+  elif 17 <= i <= 21:
+    IC.loc[i, "2019"] = round(IC.loc[i, "Suma_2019"] / IC.loc[16, "Suma_2019"], 13)
+  elif 23 <= i <= 27:
+    IC.loc[i, "2019"] = round(IC.loc[i, "Suma_2019"] / IC.loc[22, "Suma_2019"], 13)
+  elif 29 <= i <= 35:
+    IC.loc[i, "2019"] = round(IC.loc[i, "Suma_2019"] / IC.loc[28, "Suma_2019"], 13)
+  elif 37 <= i <= 44:
+    IC.loc[i, "2019"] = round(IC.loc[i, "Suma_2019"] / IC.loc[36, "Suma_2019"], 13)
+  elif 46 <= i <= 48:
+    IC.loc[i, "2019"] = round(IC.loc[i, "Suma_2019"] / IC.loc[45, "Suma_2019"], 13)
+  elif 50 <= i <= 57:
+    IC.loc[i, "2019"] = round(IC.loc[i, "Suma_2019"] / IC.loc[49, "Suma_2019"], 13)
+  elif 59 <= i <= 64:
+    IC.loc[i, "2019"] = round(IC.loc[i, "Suma_2019"] / IC.loc[58, "Suma_2019"], 13)
+  elif 66 <= i <= 68:
+    IC.loc[i, "2019"] = round(IC.loc[i, "Suma_2019"] / IC.loc[65, "Suma_2019"], 13)
+  elif 70 <= i <= 71:
+    IC.loc[i, "2019"] = round(IC.loc[i, "Suma_2019"] / IC.loc[69, "Suma_2019"], 13)
+# 2020
+IC["Suma_2020"] = IC.iloc[:, 25:36].sum(axis=1)
+IC.loc[0, "2020"] = 1.0
+for i in range(1, len(IC)):
+  if i in filas_especificas:
+    IC.loc[i, "2020"] = round(IC.loc[i, "Suma_2020"] / IC.loc[0, "Suma_2020"], 13)
+  elif 2 <= i <= 15:
+    IC.loc[i, "2020"] = round(IC.loc[i, "Suma_2020"] / IC.loc[1, "Suma_2020"], 13)
+  elif 17 <= i <= 21:
+    IC.loc[i, "2020"] = round(IC.loc[i, "Suma_2020"] / IC.loc[16, "Suma_2020"], 13)
+  elif 23 <= i <= 27:
+    IC.loc[i, "2020"] = round(IC.loc[i, "Suma_2020"] / IC.loc[22, "Suma_2020"], 13)
+  elif 29 <= i <= 35:
+    IC.loc[i, "2020"] = round(IC.loc[i, "Suma_2020"] / IC.loc[28, "Suma_2020"], 13)
+  elif 37 <= i <= 44:
+    IC.loc[i, "2020"] = round(IC.loc[i, "Suma_2020"] / IC.loc[36, "Suma_2020"], 13)
+  elif 46 <= i <= 48:
+    IC.loc[i, "2020"] = round(IC.loc[i, "Suma_2020"] / IC.loc[45, "Suma_2020"], 13)
+  elif 50 <= i <= 57:
+    IC.loc[i, "2020"] = round(IC.loc[i, "Suma_2020"] / IC.loc[49, "Suma_2020"], 13)
+  elif 59 <= i <= 64:
+    IC.loc[i, "2020"] = round(IC.loc[i, "Suma_2020"] / IC.loc[58, "Suma_2020"], 13)
+  elif 66 <= i <= 68:
+    IC.loc[i, "2020"] = round(IC.loc[i, "Suma_2020"] / IC.loc[65, "Suma_2020"], 13)
+  elif 70 <= i <= 71:
+    IC.loc[i, "2020"] = round(IC.loc[i, "Suma_2020"] / IC.loc[69, "Suma_2020"], 13)
+# 2021
+IC["Suma_2021"] = IC.iloc[:, 37:48].sum(axis=1)
+IC.loc[0, "2021"] = 1.0
+for i in range(1, len(IC)):
+  if i in filas_especificas:
+    IC.loc[i, "2021"] = round(IC.loc[i, "Suma_2021"] / IC.loc[0, "Suma_2021"], 13)
+  elif 2 <= i <= 15:
+    IC.loc[i, "2021"] = round(IC.loc[i, "Suma_2021"] / IC.loc[1, "Suma_2021"], 13)
+  elif 17 <= i <= 21:
+    IC.loc[i, "2021"] = round(IC.loc[i, "Suma_2021"] / IC.loc[16, "Suma_2021"], 13)
+  elif 23 <= i <= 27:
+    IC.loc[i, "2021"] = round(IC.loc[i, "Suma_2021"] / IC.loc[22, "Suma_2021"], 13)
+  elif 29 <= i <= 35:
+    IC.loc[i, "2021"] = round(IC.loc[i, "Suma_2021"] / IC.loc[28, "Suma_2021"], 13)
+  elif 37 <= i <= 44:
+    IC.loc[i, "2021"] = round(IC.loc[i, "Suma_2021"] / IC.loc[36, "Suma_2021"], 13)
+  elif 46 <= i <= 48:
+    IC.loc[i, "2021"] = round(IC.loc[i, "Suma_2021"] / IC.loc[45, "Suma_2021"], 13)
+  elif 50 <= i <= 57:
+    IC.loc[i, "2021"] = round(IC.loc[i, "Suma_2021"] / IC.loc[49, "Suma_2021"], 13)
+  elif 59 <= i <= 64:
+    IC.loc[i, "2021"] = round(IC.loc[i, "Suma_2021"] / IC.loc[58, "Suma_2021"], 13)
+  elif 66 <= i <= 68:
+    IC.loc[i, "2021"] = round(IC.loc[i, "Suma_2021"] / IC.loc[65, "Suma_2021"], 13)
+  elif 70 <= i <= 71:
+    IC.loc[i, "2021"] = round(IC.loc[i, "Suma_2021"] / IC.loc[69, "Suma_2021"], 13)
+# 2022
+IC["Suma_2022"] = IC.iloc[:, 49:60].sum(axis=1)
+IC.loc[0, "2022"] = 1.0
+for i in range(1, len(IC)):
+  if i in filas_especificas:
+    IC.loc[i, "2022"] = round(IC.loc[i, "Suma_2022"] / IC.loc[0, "Suma_2022"], 13)
+  elif 2 <= i <= 15:
+    IC.loc[i, "2022"] = round(IC.loc[i, "Suma_2022"] / IC.loc[1, "Suma_2022"], 13)
+  elif 17 <= i <= 21:
+    IC.loc[i, "2022"] = round(IC.loc[i, "Suma_2022"] / IC.loc[16, "Suma_2022"], 13)
+  elif 23 <= i <= 27:
+    IC.loc[i, "2022"] = round(IC.loc[i, "Suma_2022"] / IC.loc[22, "Suma_2022"], 13)
+  elif 29 <= i <= 35:
+    IC.loc[i, "2022"] = round(IC.loc[i, "Suma_2022"] / IC.loc[28, "Suma_2022"], 13)
+  elif 37 <= i <= 44:
+    IC.loc[i, "2022"] = round(IC.loc[i, "Suma_2022"] / IC.loc[36, "Suma_2022"], 13)
+  elif 46 <= i <= 48:
+    IC.loc[i, "2022"] = round(IC.loc[i, "Suma_2022"] / IC.loc[45, "Suma_2022"], 13)
+  elif 50 <= i <= 57:
+    IC.loc[i, "2022"] = round(IC.loc[i, "Suma_2022"] / IC.loc[49, "Suma_2022"], 13)
+  elif 59 <= i <= 64:
+    IC.loc[i, "2022"] = round(IC.loc[i, "Suma_2022"] / IC.loc[58, "Suma_2022"], 13)
+  elif 66 <= i <= 68:
+    IC.loc[i, "2022"] = round(IC.loc[i, "Suma_2022"] / IC.loc[65, "Suma_2022"], 13)
+  elif 70 <= i <= 71:
+    IC.loc[i, "2022"] = round(IC.loc[i, "Suma_2022"] / IC.loc[69, "Suma_2022"], 13)
+# 2023
+IC["Suma_2023"] = IC.iloc[:, 61:72].sum(axis=1)
+IC.loc[0, "2023"] = 1.0
+for i in range(1, len(IC)):
+  if i in filas_especificas:
+    IC.loc[i, "2023"] = round(IC.loc[i, "Suma_2023"] / IC.loc[0, "Suma_2023"], 13)
+  elif 2 <= i <= 15:
+    IC.loc[i, "2023"] = round(IC.loc[i, "Suma_2023"] / IC.loc[1, "Suma_2023"], 13)
+  elif 17 <= i <= 21:
+    IC.loc[i, "2023"] = round(IC.loc[i, "Suma_2023"] / IC.loc[16, "Suma_2023"], 13)
+  elif 23 <= i <= 27:
+    IC.loc[i, "2023"] = round(IC.loc[i, "Suma_2023"] / IC.loc[22, "Suma_2023"], 13)
+  elif 29 <= i <= 35:
+    IC.loc[i, "2023"] = round(IC.loc[i, "Suma_2023"] / IC.loc[28, "Suma_2023"], 13)
+  elif 37 <= i <= 44:
+    IC.loc[i, "2023"] = round(IC.loc[i, "Suma_2023"] / IC.loc[36, "Suma_2023"], 13)
+  elif 46 <= i <= 48:
+    IC.loc[i, "2023"] = round(IC.loc[i, "Suma_2023"] / IC.loc[45, "Suma_2023"], 13)
+  elif 50 <= i <= 57:
+    IC.loc[i, "2023"] = round(IC.loc[i, "Suma_2023"] / IC.loc[49, "Suma_2023"], 13)
+  elif 59 <= i <= 64:
+    IC.loc[i, "2023"] = round(IC.loc[i, "Suma_2023"] / IC.loc[58, "Suma_2023"], 13)
+  elif 66 <= i <= 68:
+    IC.loc[i, "2023"] = round(IC.loc[i, "Suma_2023"] / IC.loc[65, "Suma_2023"], 13)
+  elif 70 <= i <= 71:
+    IC.loc[i, "2023"] = round(IC.loc[i, "Suma_2023"] / IC.loc[69, "Suma_2023"], 13)
+# 2024
+IC["Suma_2024"] = IC.iloc[:, 73:84].sum(axis=1)
+IC.loc[0, "2024"] = 1.0
+for i in range(1, len(IC)):
+  if i in filas_especificas:
+    IC.loc[i, "2024"] = round(IC.loc[i, "Suma_2024"] / IC.loc[0, "Suma_2024"], 13)
+  elif 2 <= i <= 15:
+    IC.loc[i, "2024"] = round(IC.loc[i, "Suma_2024"] / IC.loc[1, "Suma_2024"], 13)
+  elif 17 <= i <= 21:
+    IC.loc[i, "2024"] = round(IC.loc[i, "Suma_2024"] / IC.loc[16, "Suma_2024"], 13)
+  elif 23 <= i <= 27:
+    IC.loc[i, "2024"] = round(IC.loc[i, "Suma_2024"] / IC.loc[22, "Suma_2024"], 13)
+  elif 29 <= i <= 35:
+    IC.loc[i, "2024"] = round(IC.loc[i, "Suma_2024"] / IC.loc[28, "Suma_2024"], 13)
+  elif 37 <= i <= 44:
+    IC.loc[i, "2024"] = round(IC.loc[i, "Suma_2024"] / IC.loc[36, "Suma_2024"], 13)
+  elif 46 <= i <= 48:
+    IC.loc[i, "2024"] = round(IC.loc[i, "Suma_2024"] / IC.loc[45, "Suma_2024"], 13)
+  elif 50 <= i <= 57:
+    IC.loc[i, "2024"] = round(IC.loc[i, "Suma_2024"] / IC.loc[49, "Suma_2024"], 13)
+  elif 59 <= i <= 64:
+    IC.loc[i, "2024"] = round(IC.loc[i, "Suma_2024"] / IC.loc[58, "Suma_2024"], 13)
+  elif 66 <= i <= 68:
+    IC.loc[i, "2024"] = round(IC.loc[i, "Suma_2024"] / IC.loc[65, "Suma_2024"], 13)
+  elif 70 <= i <= 71:
+    IC.loc[i, "2024"] = round(IC.loc[i, "Suma_2024"] / IC.loc[69, "Suma_2024"], 13)
+      
+## Agregar lineas nuevas cuando se agrugue nueva información anual ##
+
+PECO = IC.copy()
+PECO.drop(PECO.columns[1:78], axis=1, inplace=True)
+PECO.drop(columns=["Suma_2019", "Suma_2020", "Suma_2021", "Suma_2022", "Suma_2023", "Suma_2024"], axis=1, inplace=True)
+
+# Indices Encadenadosx
+Indices_Enc = IBM.copy()
+ponderador_valores = PECO["2018"].tolist()
+if len(ponderador_valores) != len(Indices_Enc):
+    raise ValueError("La longitud de la lista 'ponderador_valores' no coincide con el número de filas de 'Indices_Enc'")
+Indices_Enc.insert(loc=Indices_Enc.columns.get_loc('01-2018'), column='PONDERADOR', value=ponderador_valores)
+Indices_Enc["PONDERADOR"] = ponderador_valores
+
+# Actualizar valores en caso de cambio en los ponderadores #
+# 2020
+Indices_Enc2 = Indices_Enc.copy()
+filas = [69, 65, 58, 49, 45, 36, 28, 22, 16, 1, 0]
+rangos = [
+    (70, 71), (66, 68), (59, 64), (50, 57), (46, 48),
+    (37, 44), (29, 35), (23, 27), (17, 21), (2, 15), [69, 65, 58, 49, 45, 36, 28, 22, 16, 1]
+]
+meses = ['01-2020', '02-2020', '03-2020', '04-2020', '05-2020', '06-2020', '07-2020', '08-2020', '09-2020', '10-2020', '11-2020', '12-2020']
+for mes in meses:
+    for fila, rango in zip(filas, rangos):
+        if isinstance(rango, tuple):
+            inicio, fin = rango
+            valores_IBM = IBM.loc[inicio:fin, mes]
+        else:
+            valores_IBM = IBM.loc[rango, mes]
+        resultado = round((CDV.at[fila, '2019'] * (IBM.at[fila, mes])) / 100, 13)
+        Indices_Enc2.at[fila, mes] = resultado
+filas = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 29, 30, 31, 32, 33, 34, 35, 37, 38, 39, 40, 41, 
+         42, 43, 44, 46, 47, 48, 50, 51, 52, 53, 54, 55, 56, 57, 59, 60, 61, 62, 63, 64, 66, 67, 68, 70, 71]
+for mes in meses:
+    for fila in filas:
+        resultado = round((IBM.at[fila, mes] * CDV.at[fila, '2019']) / 100, 13)
+        Indices_Enc2.at[fila, mes] = resultado
+# 2021
+filas = [69, 65, 58, 49, 45, 36, 28, 22, 16, 1, 0]
+meses = ['01-2021', '02-2021', '03-2021', '04-2021', '05-2021', '06-2021', '07-2021', '08-2021', '09-2021', '10-2021', '11-2021', '12-2021']
+for mes in meses:
+    for fila, rango in zip(filas, rangos):
+        if isinstance(rango, tuple):
+            inicio, fin = rango
+            valores_IBM = IBM.loc[inicio:fin, mes]
+        else:
+            valores_IBM = IBM.loc[rango, mes]
+        resultado = round((CDV.at[fila, '2020'] * (IBM.at[fila, mes])) / 100, 13)
+        Indices_Enc2.at[fila, mes] = resultado
+filas = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 29, 30, 31, 32, 33, 34, 35, 37, 38, 39, 40, 41, 
+         42, 43, 44, 46, 47, 48, 50, 51, 52, 53, 54, 55, 56, 57, 59, 60, 61, 62, 63, 64, 66, 67, 68, 70, 71]
+for mes in meses:
+    for fila in filas:
+        resultado = round((IBM.at[fila, mes] * CDV.at[fila, '2020']) / 100, 13)
+        Indices_Enc2.at[fila, mes] = resultado
+# 2022
+filas = [69, 65, 58, 49, 45, 36, 28, 22, 16, 1, 0]
+meses = ['01-2022', '02-2022', '03-2022', '04-2022', '05-2022', '06-2022', '07-2022', '08-2022', '09-2022', '10-2022', '11-2022', '12-2022']
+for mes in meses:
+    for fila, rango in zip(filas, rangos):
+        if isinstance(rango, tuple):
+            inicio, fin = rango
+            valores_IBM = IBM.loc[inicio:fin, mes]
+        else:
+            valores_IBM = IBM.loc[rango, mes]
+        resultado = round((CDV.at[fila, '2021'] * (IBM.at[fila, mes])) / 100, 13)
+        Indices_Enc2.at[fila, mes] = resultado
+filas = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 29, 30, 31, 32, 33, 34, 35, 37, 38, 39, 40, 41, 
+         42, 43, 44, 46, 47, 48, 50, 51, 52, 53, 54, 55, 56, 57, 59, 60, 61, 62, 63, 64, 66, 67, 68, 70, 71]
+for mes in meses:
+    for fila in filas:
+        resultado = round((IBM.at[fila, mes] * CDV.at[fila, '2021']) / 100, 13)
+        Indices_Enc2.at[fila, mes] = resultado
+# 2023
+filas = [69, 65, 58, 49, 45, 36, 28, 22, 16, 1, 0]
+meses = ['01-2023', '02-2023', '03-2023', '04-2023', '05-2023', '06-2023', '07-2023', '08-2023', '09-2023', '10-2023', '11-2023', '12-2023']
+for mes in meses:
+    for fila, rango in zip(filas, rangos):
+        if isinstance(rango, tuple):
+            inicio, fin = rango
+            valores_IBM = IBM.loc[inicio:fin, mes]
+        else:
+            valores_IBM = IBM.loc[rango, mes]
+        resultado = round((CDV.at[fila, '2022'] * (IBM.at[fila, mes])) / 100, 13)
+        Indices_Enc2.at[fila, mes] = resultado
+filas = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 29, 30, 31, 32, 33, 34, 35, 37, 38, 39, 40, 41, 
+         42, 43, 44, 46, 47, 48, 50, 51, 52, 53, 54, 55, 56, 57, 59, 60, 61, 62, 63, 64, 66, 67, 68, 70, 71]
+for mes in meses:
+    for fila in filas:
+        resultado = round((IBM.at[fila, mes] * CDV.at[fila, '2022']) / 100, 13)
+        Indices_Enc2.at[fila, mes] = resultado
+# 2024
+filas = [69, 65, 58, 49, 45, 36, 28, 22, 16, 1, 0]
+meses = ['01-2024', '02-2024', '03-2024', '04-2024']
+for mes in meses:
+    for fila, rango in zip(filas, rangos):
+        if isinstance(rango, tuple):
+            inicio, fin = rango
+            valores_IBM = IBM.loc[inicio:fin, mes]
+        else:
+            valores_IBM = IBM.loc[rango, mes]
+        resultado = round((CDV.at[fila, '2023'] * (IBM.at[fila, mes])) / 100, 13)
+        Indices_Enc2.at[fila, mes] = resultado
+filas = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 29, 30, 31, 32, 33, 34, 35, 37, 38, 39, 40, 41, 
+         42, 43, 44, 46, 47, 48, 50, 51, 52, 53, 54, 55, 56, 57, 59, 60, 61, 62, 63, 64, 66, 67, 68, 70, 71]
+for mes in meses:
+    for fila in filas:
+        resultado = round((IBM.at[fila, mes] * CDV.at[fila, '2023']) / 100, 13)
+        Indices_Enc2.at[fila, mes] = resultado
+
+## Agregar nueva información mensual cuando sea necesario ##
+
+# Renombrar el archivo y exportarlo 
+Indices_Enc2 = Indices_Enc2.drop(columns=["PONDERADOR"])
+from datetime import datetime
+fecha_actual = datetime.now().strftime("%d%m%Y")
+nombre_df = "Indices_Encadenados_Remu_" + fecha_actual
+Indices_Encadenados_Remu_DDMMAAAA = Indices_Enc2
+nombre_archivo = nombre_df + ".csv"
+#Indices_Encadenados_Remu_DDMMAAAA.to_csv(nombre_archivo, index_label="Index")
+print(Indices_Encadenados_Remu_DDMMAAAA)
